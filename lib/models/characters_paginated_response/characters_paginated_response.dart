@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:marvel_app/models/character.dart';
+import 'package:marvel_app/models/character/character.dart';
 
 part 'characters_paginated_response.freezed.dart';
 part 'characters_paginated_response.g.dart';

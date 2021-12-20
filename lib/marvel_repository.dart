@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
-import 'package:marvel_app/models/character.dart';
-import 'package:marvel_app/models/characters_paginated_response.dart';
-import 'package:marvel_app/models/marvel_api_keys.dart';
+import 'package:marvel_app/models/characters_paginated_response/characters_paginated_response.dart';
+import 'package:marvel_app/models/marvel_api_keys/marvel_api_keys.dart';
 import 'package:marvel_app/server_exception.dart';
 
 class MarvelRepository {
@@ -17,6 +15,7 @@ class MarvelRepository {
   Future<CharactersPaginatedResponse> fetchCharacters({
     int offset = 0,
     int limit = 50,
+    String nameStartsWith = '',
   }) async {
     String keysJson =
         await rootBundle.loadString('assets/marvel_api_keys.json');
@@ -26,6 +25,7 @@ class MarvelRepository {
         .convert(utf8
             .encode('$ts${marvelApiKeys.privateKey}${marvelApiKeys.publicKey}'))
         .toString();
+    print('here');
     try {
       final response = await _dio.get(
         'https://gateway.marvel.com:443/v1/public/characters',
@@ -35,12 +35,14 @@ class MarvelRepository {
           'hash': hash,
           'offset': offset,
           'limit': limit,
+          if (nameStartsWith.isNotEmpty) 'nameStartsWith': nameStartsWith,
         },
       );
+      print(response);
       Map<String, dynamic> jsonData = response.data['data'];
       return CharactersPaginatedResponse.fromJson(jsonData);
     } catch (e) {
-      throw ServerException('Couldn\'t fetch characters');
+      throw ServerException(e.toString());
     }
   }
 }
