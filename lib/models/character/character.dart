@@ -78,4 +78,13 @@ class CharacterListSearchProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void refresh() {
+    characters = [];
+    offset = 0;
+    hasNext = true;
+    total = null;
+    count = null;
+    loadingState = LoadingState.done;
+  }
 }

@@ -16,6 +16,11 @@ final charactersProvider = ChangeNotifierProvider<CharacterListProvider>((ref) {
   return CharacterListProvider();
 });
 
+final charactersSearchProvider =
+    ChangeNotifierProvider.autoDispose<CharacterListSearchProvider>((ref) {
+  return CharacterListSearchProvider();
+});
+
 class MyApp extends ConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -26,7 +31,3 @@ class MyApp extends ConsumerWidget {
     );
   }
 }
-
-
-
-

@@ -25,7 +25,6 @@ class MarvelRepository {
         .convert(utf8
             .encode('$ts${marvelApiKeys.privateKey}${marvelApiKeys.publicKey}'))
         .toString();
-    print('here');
     try {
       final response = await _dio.get(
         'https://gateway.marvel.com:443/v1/public/characters',
@@ -38,7 +37,6 @@ class MarvelRepository {
           if (nameStartsWith.isNotEmpty) 'nameStartsWith': nameStartsWith,
         },
       );
-      print(response);
       Map<String, dynamic> jsonData = response.data['data'];
       return CharactersPaginatedResponse.fromJson(jsonData);
     } catch (e) {
