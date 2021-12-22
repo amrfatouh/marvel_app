@@ -20,34 +20,28 @@ class _CharactersSearchScreenState
 
   @override
   void initState() {
-    _pagingController.addPageRequestListener(_fetchPage);
+    _pagingController.addPageRequestListener((int pageKey) async {
+      try {
+        print('fetching new page, offset: $pageKey');
+        ref
+            .read(charactersSearchProvider)
+            .fetchCharacters(_searchTerm!, doesNotify: false);
+      } catch (error) {
+        _pagingController.error = error;
+      }
+    });
     super.initState();
-  }
-
-  Future<void> _fetchPage(int pageKey) async {
-    try {
-      print('fetching new page, offset: $pageKey');
-      ref
-          .read(charactersSearchProvider)
-          .fetchCharacters(_searchTerm!, doesNotify: false);
-    } catch (error) {
-      _pagingController.error = error;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Character> characters = ref.watch(charactersSearchProvider).characters;
-    int offset = ref.watch(charactersSearchProvider).offset;
-    if (characters.isNotEmpty) {
+    ref.listen<CharacterListSearchProvider>(charactersSearchProvider,
+        (previous, next) {
       _pagingController.value = PagingState<int, Character>(
-        nextPageKey: offset,
-        itemList: characters,
+        nextPageKey: next.hasNext ? next.offset : null,
+        itemList: next.characters,
       );
-    }
-    if (!ref.watch(charactersSearchProvider).hasNext) {
-      _pagingController.appendLastPage([]);
-    }
+    });
 
     return Scaffold(
       appBar: AppBar(title: Text('Search')),
@@ -62,8 +56,8 @@ class _CharactersSearchScreenState
               ),
               onSubmitted: (value) {
                 setState(() => _searchTerm = value);
-                // empty characters (so that new values are not added on old
-                // search characters) list, reset offset, total and count in the
+                // empty characters list (so that new values are not added on
+                // old search characters), reset offset, total and count in the
                 // provider
                 ref.read(charactersSearchProvider).refresh();
                 // refresh the PagingController so that the value of nextPageKey

@@ -3,7 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:marvel_app/main.dart';
 import 'package:marvel_app/marvel_repository.dart';
 import 'package:marvel_app/models/thumbnail/thumbnail.dart';
-import 'package:riverpod/riverpod.dart';
 
 part 'character.freezed.dart';
 part 'character.g.dart';
@@ -48,6 +47,11 @@ class CharacterListProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  @override
+  String toString() {
+    return 'CharacterListProvider (offset: $offset, limit: $limit, hasNext: $hasNext, total: $total, count: $count, loadingState: $loadingState, characters: $characters';
+  }
 }
 
 class CharacterListSearchProvider extends ChangeNotifier {
@@ -79,12 +83,13 @@ class CharacterListSearchProvider extends ChangeNotifier {
     }
   }
 
-  void refresh() {
+  void refresh({bool doesNotify = false}) {
     characters = [];
     offset = 0;
     hasNext = true;
     total = null;
     count = null;
     loadingState = LoadingState.done;
+    if (doesNotify) notifyListeners();
   }
 }
