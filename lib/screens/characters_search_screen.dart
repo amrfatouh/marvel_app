@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:marvel_app/main.dart';
+import 'package:marvel_app/models/character/character.dart';
 import 'package:marvel_app/widgets/character_tile.dart';
 import 'package:marvel_app/models/pagination_page.dart';
 import 'package:marvel_app/models/pagination_offset.dart';
@@ -18,6 +19,7 @@ class _CharactersSearchScreenState
 
   @override
   Widget build(BuildContext context) {
+    int? total = ref.watch(charactersProvider).total;
     return Scaffold(
       appBar: AppBar(title: Text('Search')),
       body: Padding(
@@ -31,35 +33,41 @@ class _CharactersSearchScreenState
               ),
               onSubmitted: (value) {
                 setState(() => _searchTerm = value);
+                // refresh to empty characters list and caching map
+                ref.read(charactersProvider).refresh();
               },
             ),
             SizedBox(height: 20),
             if (_searchTerm != null)
               Expanded(
-                  child: Center(
-                child: ref
-                    .watch(charactersCountProvider(
-                        PaginationPage(_searchTerm!, 0)))
-                    .when(
-                      data: (count) => GridView.builder(
-                        itemCount: count,
-                        itemBuilder: (context, index) => Center(
-                          child: ref
-                              .watch(characterAtIndex(
-                                  PaginationOffset(_searchTerm!, index)))
-                              .when(
-                                data: (character) => CharacterTile(character),
-                                error: (error, _) => Text(error.toString()),
-                                loading: () => CircularProgressIndicator(),
-                              ),
-                        ),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2),
-                      ),
-                      error: (err, stack) => Text('Error: $err'),
-                      loading: () => CircularProgressIndicator(),
-                    ),
-              )),
+                child: Center(
+                  child: GridView.builder(
+                    itemCount: total,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2),
+                    itemBuilder: (context, index) {
+                      Future<Character> characterFuture = ref.watch(
+                          characterAtIndex(
+                              PaginationOffset(_searchTerm!, index)));
+                      return Center(
+                          child: FutureBuilder(
+                        future: characterFuture,
+                        builder: (context, AsyncSnapshot<Character> snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            if (snapshot.hasData) {
+                              return CharacterTile(snapshot.data!);
+                            } else if (snapshot.hasError) {
+                              return Text('error: ${snapshot.error}');
+                            }
+                          }
+                          return CircularProgressIndicator();
+                        },
+                      ));
+                    },
+                  ),
+                ),
+              ),
           ],
         ),
       ),
